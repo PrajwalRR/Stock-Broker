@@ -1,0 +1,29 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  @apply bg-white dark:bg-slate-950;
+  @apply text-slate-900 dark:text-slate-100;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+#root {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
