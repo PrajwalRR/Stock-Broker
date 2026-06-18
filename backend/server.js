@@ -5,6 +5,10 @@ const { Server } = require("socket.io");
 
 const PORT = process.env.PORT || 5000;
 
+function normalizeOrigin(origin) {
+  return origin.replace(/\/+$/, "");
+}
+
 function getAllowedOrigins() {
   const configured = process.env.CORS_ORIGIN || process.env.CLIENT_URL;
   if (!configured) {
@@ -14,10 +18,19 @@ function getAllowedOrigins() {
   return configured
     .split(",")
     .map((origin) => origin.trim())
+    .map((origin) => normalizeOrigin(origin))
     .filter(Boolean);
 }
 
 const allowedOrigins = getAllowedOrigins();
+
+function isOriginAllowed(origin) {
+  if (!origin) {
+    return true;
+  }
+
+  return allowedOrigins.includes(normalizeOrigin(origin));
+}
 
 const supportedStocks = {
   GOOG: {
@@ -79,7 +92,7 @@ const app = express();
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (isOriginAllowed(origin)) {
         callback(null, true);
         return;
       }
@@ -93,7 +106,14 @@ app.use(express.json());
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("CORS origin not allowed"));
+    },
     methods: ["GET", "POST"],
   },
 });
@@ -125,6 +145,10 @@ function serializeSubscriptions(userRecord) {
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+app.get("/", (_req, res) => {
+  res.json({ status: "ok", service: "stock-broker-dashboard-backend" });
 });
 
 app.get("/stocks", (_req, res) => {
