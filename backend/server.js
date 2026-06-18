@@ -29,7 +29,30 @@ function isOriginAllowed(origin) {
     return true;
   }
 
-  return allowedOrigins.includes(normalizeOrigin(origin));
+  const normalized = normalizeOrigin(origin);
+
+  // Always allow localhost for dev
+  if (normalized.includes("localhost")) {
+    return true;
+  }
+
+  // Allow any vercel.app domain
+  if (normalized.includes("vercel.app")) {
+    console.log(`[CORS] ✓ Allowing vercel.app origin: ${origin}`);
+    return true;
+  }
+
+  // Check configured origins
+  const isAllowed = allowedOrigins.includes(normalized);
+  if (!isAllowed) {
+    console.warn(
+      `[CORS] ✗ Rejected origin: ${origin}`,
+      `Normalized: ${normalized}`,
+      `Allowed: ${allowedOrigins.join(", ")}`
+    );
+  }
+
+  return isAllowed;
 }
 
 const supportedStocks = {
@@ -384,5 +407,6 @@ initializeStockHistory();
 server.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`Backend server running on port ${PORT}`);
-  console.log(`Allowed CORS origins: ${allowedOrigins.join(", ")}`);
+  console.log(`[CORS] Configured origins from env: ${allowedOrigins.join(", ")}`);
+  console.log(`[CORS] Fallback: all localhost + all vercel.app domains are allowed`);
 });
