@@ -112,18 +112,7 @@ function initializeStockHistory() {
 }
 
 const app = express();
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (isOriginAllowed(origin)) {
-        callback(null, true);
-        return;
-      }
-
-      callback(new Error("CORS origin not allowed"));
-    },
-  })
-);
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 
 const server = http.createServer(app);
