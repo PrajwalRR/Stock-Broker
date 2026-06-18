@@ -9,6 +9,18 @@ npm run dev
 
 The frontend runs on `http://localhost:5173`.
 
+## Environment Variables
+
+Use `.env.example` as reference:
+
+- `VITE_SOCKET_URL` - Backend Socket.IO URL
+
+Example:
+
+```bash
+VITE_SOCKET_URL=http://localhost:5000
+```
+
 ## Features
 
 - Email login (demo auth)

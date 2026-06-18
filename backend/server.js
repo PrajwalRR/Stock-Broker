@@ -3,7 +3,21 @@ const http = require("http");
 const cors = require("cors");
 const { Server } = require("socket.io");
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
+
+function getAllowedOrigins() {
+  const configured = process.env.CORS_ORIGIN || process.env.CLIENT_URL;
+  if (!configured) {
+    return ["http://localhost:5173"];
+  }
+
+  return configured
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
+const allowedOrigins = getAllowedOrigins();
 
 const supportedStocks = {
   GOOG: {
@@ -62,13 +76,24 @@ function initializeStockHistory() {
 }
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("CORS origin not allowed"));
+    },
+  })
+);
 app.use(express.json());
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
   },
 });
@@ -334,5 +359,6 @@ initializeStockHistory();
 
 server.listen(PORT, () => {
   // eslint-disable-next-line no-console
-  console.log(`Backend server running at http://localhost:${PORT}`);
+  console.log(`Backend server running on port ${PORT}`);
+  console.log(`Allowed CORS origins: ${allowedOrigins.join(", ")}`);
 });
